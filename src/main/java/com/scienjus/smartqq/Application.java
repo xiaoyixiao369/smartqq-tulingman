@@ -29,19 +29,18 @@ public class Application {
     public static final int MAX_CONTENT_LEN = 200;
     /**
      * 图灵机器人API KEY
-     *
      */
-    public static final String TU_LING_API_KEY = "d24b39dccfbc4831b533bdff30320c42";
+    public static final String TU_LING_API_KEY = "";
 
     /**
      * 监听收到好友的QQ消息的QQ号
      */
-    public static final Long[] LISTEN_QQ_NUMBERS = new Long[]{396458595L, 310285225L};
+    public static final Long[] LISTEN_QQ_NUMBERS = new Long[]{};
 
     /**
      * 监听收到群消息的群名称
      */
-    public static final String[] LISTEN_QQ_GROUPS = new String[]{"腾讯新闻"};
+    public static final String[] LISTEN_QQ_GROUPS = new String[]{};
 
     public static void main(String[] args) {
 
@@ -77,7 +76,8 @@ public class Application {
 
             @Override
             public void onDiscussMessage(SmartQQClient client, DiscussMessage message) {
-                System.out.println(message.getContent());
+                DiscussInfo discussInfo = client.getDiscussInfo(message.getDiscussId());
+                System.out.println("讨论组消息(" + discussInfo.getName() + "): " + message.getContent());
             }
         });
         //登录成功后便可以编写你自己的业务逻辑了
