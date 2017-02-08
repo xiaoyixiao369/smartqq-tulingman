@@ -31,12 +31,12 @@ public class Application {
      * 图灵机器人API KEY
      *
      */
-    public static final String TU_LING_API_KEY = "2e29921641b808e1986e20d4fc6e3238";
+    public static final String TU_LING_API_KEY = "d24b39dccfbc4831b533bdff30320c42";
 
     /**
      * 监听收到好友的QQ消息的QQ号
      */
-    public static final Long[] LISTEN_QQ_NUMBERS = new Long[]{};
+    public static final Long[] LISTEN_QQ_NUMBERS = new Long[]{396458595L, 310285225L};
 
     /**
      * 监听收到群消息的群名称
