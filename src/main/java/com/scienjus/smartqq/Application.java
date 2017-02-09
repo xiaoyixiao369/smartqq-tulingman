@@ -11,8 +11,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * @author ScienJus
@@ -20,39 +20,33 @@ import java.util.List;
  */
 public class Application {
     /**
-     * 收到消息的长度最小值
+     * 图灵机器人API KEY, 请见app.properties中tulingkey
      */
-    public static final int MIN_CONTENT_LEN = 0;
-    /**
-     * 收到消息的长度最大值
-     */
-    public static final int MAX_CONTENT_LEN = 200;
-    /**
-     * 图灵机器人API KEY
-     */
-    public static final String TU_LING_API_KEY = "";
+    private static String TU_LING_API_KEY;
 
     /**
-     * 监听收到好友的QQ消息的QQ号
+     * 监听收到好友的QQ消息的QQ号, 请见app.qqnumbers
      */
-    public static final Long[] LISTEN_QQ_NUMBERS = new Long[]{};
+    private static Long[] LISTEN_QQ_NUMBERS;
 
     /**
-     * 监听收到群消息的群名称
+     * 监听收到群消息的群名称, 请见app.properties中groupnames
      */
-    public static final String[] LISTEN_QQ_GROUPS = new String[]{};
+    private static String[] LISTEN_QQ_GROUPS;
 
     public static void main(String[] args) {
+        // 间歇加载要监听的QQ号码和群名称
+        Timer loadNumbersTimer = new Timer();
+        loadNumbersTimer.schedule(new LoadNumbersTimerTask(), 100, 5000);
 
-        //创建一个新对象时需要扫描二维码登录，并且传一个处理接收到消息的回调，如果你不需要接收消息，可以传null
+        // 创建一个新对象时需要扫描二维码登录，并且传一个处理接收到消息的回调，如果你不需要接收消息，可以传null
         SmartQQClient client = new SmartQQClient(new MessageCallback() {
             @Override
             public void onMessage(SmartQQClient client, Message message) {
                 long qqNumber = client.getQQById(message);
                 String content = message.getContent();
                 System.out.println("QQ消息(" + qqNumber + "): " + content);
-                int contentLength = content.length();
-                if (contentLength > MIN_CONTENT_LEN && contentLength < MAX_CONTENT_LEN && Arrays.asList(LISTEN_QQ_NUMBERS).contains(qqNumber)) {
+                if (Arrays.asList(LISTEN_QQ_NUMBERS).contains(qqNumber)) {
                     String reply = tulingMsg(content);
                     System.out.println("回复QQ消息(" + qqNumber + "): " + reply);
                     client.sendMessageToFriend(message.getUserId(), reply);
@@ -65,8 +59,7 @@ public class Application {
                 GroupInfo groupInfo = client.getGroupInfo(message.getGroupId());
                 String groupName = groupInfo.getName();
                 System.out.println("群消息(" + groupName + "): " + content);
-                int contentLength = content.length();
-                if (contentLength > MIN_CONTENT_LEN && contentLength < MAX_CONTENT_LEN && Arrays.asList(LISTEN_QQ_GROUPS).contains(groupName)) {
+                if (Arrays.asList(LISTEN_QQ_GROUPS).contains(groupName)) {
                     String reply = tulingMsg(content);
                     System.out.println("回复群消息(" + groupName + "): " + reply);
                     client.sendMessageToGroup(message.getGroupId(), reply);
@@ -80,7 +73,7 @@ public class Application {
                 System.out.println("讨论组消息(" + discussInfo.getName() + "): " + message.getContent());
             }
         });
-        //登录成功后便可以编写你自己的业务逻辑了
+        // 登录成功后便可以编写你自己的业务逻辑了
         List<Category> categories = client.getFriendListWithCategory();
         for (Category category : categories) {
             System.out.println(category.getName());
@@ -91,7 +84,7 @@ public class Application {
 
         // 阻塞
         while (true) ;
-        //使用后调用close方法关闭，你也可以使用try-with-resource创建该对象并自动关闭
+        // 使用后调用close方法关闭，你也可以使用try-with-resource创建该对象并自动关闭
 //        try {
 //            client.close();
 //        } catch (IOException e) {
@@ -105,7 +98,7 @@ public class Application {
      * @param talkMsg
      * @return
      */
-    public static String tulingMsg(String talkMsg) {
+    private static String tulingMsg(String talkMsg) {
         String data = null;
         try {
             data = URLEncoder.encode(talkMsg, "utf-8");
@@ -139,5 +132,47 @@ public class Application {
             e.printStackTrace();
         }
         return "";
+    }
+
+    static class LoadNumbersTimerTask extends TimerTask {
+        Properties properties = new Properties();
+
+        @Override
+        public void run() {
+            try {
+                String now = new SimpleDateFormat("HH:mm").format(new Date());
+                System.out.println("[" + now + "] 加载监听的QQ号和群名称: ");
+                properties.load(this.getClass().getClassLoader().getResourceAsStream("app.properties"));
+                TU_LING_API_KEY = properties.getProperty("tulingkey", "");
+                String qqStrNumbers = properties.getProperty("qqnumbers");
+                String groupStrNames = properties.getProperty("groupnames");
+                if (qqStrNumbers.length() > 0) {
+                    String[] split = qqStrNumbers.split(",");
+                    Long[] qqNumbers = new Long[split.length];
+                    long[] longs = Arrays.stream(split).distinct().map(String::trim).mapToLong(Long::valueOf).toArray();
+                    for (int i = 0; i < split.length; i++) {
+                        qqNumbers[i] = longs[i];
+                    }
+                    LISTEN_QQ_NUMBERS = qqNumbers;
+                    System.out.println("正在监听的QQ号: " + String.join(",", Arrays.toString(LISTEN_QQ_NUMBERS)));
+                } else {
+                    LISTEN_QQ_NUMBERS = new Long[]{};
+                }
+
+                if (groupStrNames.length() > 0) {
+                    String[] splitStrGroupNames = groupStrNames.split(",");
+                    String[] groupNames = new String[splitStrGroupNames.length];
+                    for (int j = 0; j < splitStrGroupNames.length; j++) {
+                        groupNames[j] = splitStrGroupNames[j].trim();
+                    }
+                    LISTEN_QQ_GROUPS = groupNames;
+                    System.out.println("正在监听的QQ群: " + String.join(",", LISTEN_QQ_GROUPS));
+                } else {
+                    LISTEN_QQ_GROUPS = new String[]{};
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

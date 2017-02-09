@@ -15,7 +15,5 @@ public class TestApp {
             e.printStackTrace();
         }
 
-        System.out.println(Application.tulingMsg("测试"));
-
     }
 }
