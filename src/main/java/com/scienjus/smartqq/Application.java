@@ -37,7 +37,7 @@ public class Application {
     public static void main(String[] args) {
         // 间歇加载要监听的QQ号码和群名称
         Timer loadNumbersTimer = new Timer();
-        loadNumbersTimer.schedule(new LoadNumbersTimerTask(), 100, 1000 * 60 * 5);
+        loadNumbersTimer.schedule(new LoadNumbersTimerTask(), 100, 1000 * 30);
 
         // 创建一个新对象时需要扫描二维码登录，并且传一个处理接收到消息的回调，如果你不需要接收消息，可以传null
         SmartQQClient client = new SmartQQClient(new MessageCallback() {
@@ -48,10 +48,10 @@ public class Application {
                 UserInfo friendInfo = client.getFriendInfo(userId);
                 String content = message.getContent();
                 String nickName = friendInfo.getNick();
-                System.out.println("QQ消息(" + nickName + " [" + qqNumber + "]): " + content);
+                System.out.println("QQ消息(" + nickName + "[" + qqNumber + "]): " + content);
                 if (Arrays.asList(LISTEN_QQ_NUMBERS).contains(qqNumber)) {
                     String reply = tulingMsg(content);
-                    System.out.println("回复QQ消息(" + nickName + " [" + qqNumber + "]): " + reply);
+                    System.out.println("回复QQ消息(" + nickName + "[" + qqNumber + "]): " + reply);
                     client.sendMessageToFriend(userId, reply);
                 }
             }
