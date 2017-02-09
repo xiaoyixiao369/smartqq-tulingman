@@ -25,7 +25,7 @@ public class Application {
     private static String TU_LING_API_KEY;
 
     /**
-     * 监听收到好友的QQ消息的QQ号, 请见app.qqnumbers
+     * 监听收到好友的QQ消息的QQ号, 请见app.properties中qqnumbers
      */
     private static Long[] LISTEN_QQ_NUMBERS;
 
