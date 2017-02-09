@@ -37,7 +37,7 @@ public class Application {
     public static void main(String[] args) {
         // 间歇加载要监听的QQ号码和群名称
         Timer loadNumbersTimer = new Timer();
-        loadNumbersTimer.schedule(new LoadNumbersTimerTask(), 100, 5000);
+        loadNumbersTimer.schedule(new LoadNumbersTimerTask(), 100, 1000 * 60 * 5);
 
         // 创建一个新对象时需要扫描二维码登录，并且传一个处理接收到消息的回调，如果你不需要接收消息，可以传null
         SmartQQClient client = new SmartQQClient(new MessageCallback() {
@@ -134,6 +134,9 @@ public class Application {
         return "";
     }
 
+    /**
+     * 定时加载app.properties
+     */
     static class LoadNumbersTimerTask extends TimerTask {
         Properties properties = new Properties();
 
