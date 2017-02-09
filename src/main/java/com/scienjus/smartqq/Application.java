@@ -44,12 +44,15 @@ public class Application {
             @Override
             public void onMessage(SmartQQClient client, Message message) {
                 long qqNumber = client.getQQById(message);
+                long userId = message.getUserId();
+                UserInfo friendInfo = client.getFriendInfo(userId);
                 String content = message.getContent();
-                System.out.println("QQ消息(" + qqNumber + "): " + content);
+                String nickName = friendInfo.getNick();
+                System.out.println("QQ消息(" + nickName + " [" + qqNumber + "]): " + content);
                 if (Arrays.asList(LISTEN_QQ_NUMBERS).contains(qqNumber)) {
                     String reply = tulingMsg(content);
-                    System.out.println("回复QQ消息(" + qqNumber + "): " + reply);
-                    client.sendMessageToFriend(message.getUserId(), reply);
+                    System.out.println("回复QQ消息(" + nickName + " [" + qqNumber + "]): " + reply);
+                    client.sendMessageToFriend(userId, reply);
                 }
             }
 
@@ -157,7 +160,7 @@ public class Application {
                         qqNumbers[i] = longs[i];
                     }
                     LISTEN_QQ_NUMBERS = qqNumbers;
-                    System.out.println("正在监听的QQ号: " + String.join(",", Arrays.toString(LISTEN_QQ_NUMBERS)));
+                    System.out.println("--正在监听的QQ号: " + qqStrNumbers);
                 } else {
                     LISTEN_QQ_NUMBERS = new Long[]{};
                 }
@@ -169,7 +172,7 @@ public class Application {
                         groupNames[j] = splitStrGroupNames[j].trim();
                     }
                     LISTEN_QQ_GROUPS = groupNames;
-                    System.out.println("正在监听的QQ群: " + String.join(",", LISTEN_QQ_GROUPS));
+                    System.out.println("--正在监听的QQ群: " + groupStrNames);
                 } else {
                     LISTEN_QQ_GROUPS = new String[]{};
                 }
