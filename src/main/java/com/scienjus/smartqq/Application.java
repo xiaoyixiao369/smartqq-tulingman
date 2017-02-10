@@ -11,8 +11,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author ScienJus
@@ -20,19 +21,19 @@ import java.util.*;
  */
 public class Application {
     /**
-     * 图灵机器人API KEY, 请见app.properties中tulingkey
+     * 图灵机器人API KEY
      */
-    private static String TU_LING_API_KEY;
+    public static final String TU_LING_API_KEY = "";
 
     /**
-     * 监听收到好友的QQ消息的QQ号, 请见app.properties中qqnumbers
+     * 监听收到好友的QQ消息的QQ号
      */
-    private static Long[] LISTEN_QQ_NUMBERS;
+    public static final Long[] LISTEN_QQ_NUMBERS = new Long[]{};
 
     /**
-     * 监听收到群消息的群名称, 请见app.properties中groupnames
+     * 监听收到群消息的群名称
      */
-    private static String[] LISTEN_QQ_GROUPS;
+    public static final String[] LISTEN_QQ_GROUPS = new String[]{};
 
     /**
      * QQ好友
@@ -40,12 +41,8 @@ public class Application {
     private static List<Friend> friends = new ArrayList<>();
 
     public static void main(String[] args) {
-        // 间歇加载要监听的QQ号码和群名称
-        Timer loadNumbersTimer = new Timer();
-        loadNumbersTimer.schedule(new LoadConfigurationTask(), 100, 1000 * 20);
-
-        // 创建一个新对象时需要扫描二维码登录，并且传一个处理接收到消息的回调，如果你不需要接收消息，可以传null
-        SmartQQClient client = new SmartQQClient(new MessageCallback() {
+        //创建一个新对象时需要扫描二维码登录，并且传一个处理接收到消息的回调，如果你不需要接收消息，可以传null
+        SmartQQClient smartQQClient = new SmartQQClient(new MessageCallback() {
             @Override
             public void onMessage(SmartQQClient client, Message message) {
                 long qqNumber = client.getQQById(message);
@@ -58,7 +55,6 @@ public class Application {
                         nickName = friend.getMarkname();
                     }
                 }
-
                 String content = message.getContent();
                 System.out.println("QQ消息(" + nickName + "[" + qqNumber + "]): " + content);
                 if (Arrays.asList(LISTEN_QQ_NUMBERS).contains(qqNumber)) {
@@ -70,35 +66,33 @@ public class Application {
 
             @Override
             public void onGroupMessage(SmartQQClient client, GroupMessage message) {
+                String content = message.getContent();
                 GroupInfo groupInfo = client.getGroupInfo(message.getGroupId());
                 String groupName = groupInfo.getName();
-                String content = message.getContent();
                 System.out.println("群消息(" + groupName + "): " + content);
                 if (Arrays.asList(LISTEN_QQ_GROUPS).contains(groupName)) {
                     String reply = tulingMsg(content);
                     System.out.println("回复群消息(" + groupName + "): " + reply);
                     client.sendMessageToGroup(message.getGroupId(), reply);
                 }
-
             }
 
             @Override
             public void onDiscussMessage(SmartQQClient client, DiscussMessage message) {
-                DiscussInfo discussInfo = client.getDiscussInfo(message.getDiscussId());
-                System.out.println("讨论组消息(" + discussInfo.getName() + "): " + message.getContent());
+                System.out.println("讨论组消息: " + message.getContent());
             }
         });
-        // 登录成功后便可以编写你自己的业务逻辑了
-        List<Category> categories = client.getFriendListWithCategory();
+
+        //登录成功后便可以编写你自己的业务逻辑了
+        List<Category> categories = smartQQClient.getFriendListWithCategory();
         for (Category category : categories) {
             friends.addAll(category.getFriends());
         }
         System.out.println("--共有" + friends.size() + "位好友");
         friends.forEach(friend -> System.out.println(friend.getNickname() + " -- " + friend.getMarkname()));
 
-        // 阻塞
         while (true) ;
-        // 使用后调用close方法关闭，你也可以使用try-with-resource创建该对象并自动关闭
+        //使用后调用close方法关闭，你也可以使用try-with-resource创建该对象并自动关闭
 //        try {
 //            client.close();
 //        } catch (IOException e) {
@@ -112,7 +106,7 @@ public class Application {
      * @param talkMsg
      * @return
      */
-    private static String tulingMsg(String talkMsg) {
+    public static String tulingMsg(String talkMsg) {
         String data = null;
         try {
             data = URLEncoder.encode(talkMsg, "utf-8");
@@ -146,49 +140,5 @@ public class Application {
             e.printStackTrace();
         }
         return "";
-    }
-
-    /**
-     * 定时加载app.properties
-     */
-    static class LoadConfigurationTask extends TimerTask {
-        Properties properties = new Properties();
-
-        @Override
-        public void run() {
-            try {
-                properties.load(LoadConfigurationTask.class.getClassLoader().getResourceAsStream("app.properties"));
-                TU_LING_API_KEY = properties.getProperty("tulingkey", "");
-                String qqStrNumbers = properties.getProperty("qqnumbers");
-                String groupStrNames = properties.getProperty("groupnames");
-                if (qqStrNumbers.length() > 0) {
-                    String[] split = qqStrNumbers.split(",");
-                    Long[] qqNumbers = new Long[split.length];
-                    long[] longs = Arrays.stream(split).distinct().map(String::trim).mapToLong(Long::valueOf).toArray();
-                    for (int i = 0; i < split.length; i++) {
-                        qqNumbers[i] = longs[i];
-                    }
-                    LISTEN_QQ_NUMBERS = qqNumbers;
-                } else {
-                    LISTEN_QQ_NUMBERS = new Long[]{};
-                }
-
-                if (groupStrNames.length() > 0) {
-                    String[] splitStrGroupNames = groupStrNames.split(",");
-                    String[] groupNames = new String[splitStrGroupNames.length];
-                    for (int j = 0; j < splitStrGroupNames.length; j++) {
-                        groupNames[j] = splitStrGroupNames[j].trim();
-                    }
-                    LISTEN_QQ_GROUPS = groupNames;
-                } else {
-                    LISTEN_QQ_GROUPS = new String[]{};
-                }
-                String now = new SimpleDateFormat("HH:mm:ss").format(new Date());
-                System.out.println("--[" + now + "]正在监听的QQ号: " + qqStrNumbers);
-                System.out.println("--[" + now + "]正在监听的QQ群: " + groupStrNames);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 }

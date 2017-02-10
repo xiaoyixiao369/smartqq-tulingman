@@ -3,7 +3,7 @@
 
 ### 使用方法
 
-克隆本项目到本地, 修改`resources/app.properties`文件中的参数, 详见参数注释, 运行`Application.java`即可  
+克隆本项目到本地, 修改`Application.java`文件中的参数, 详见参数注释, 运行`Application.java`即可  
   
 图灵机器人API KEY需要你到`http://www.tuling123.com/`申请
 
