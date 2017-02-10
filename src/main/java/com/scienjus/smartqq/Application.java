@@ -57,7 +57,7 @@ public class Application {
                 }
                 String content = message.getContent();
                 System.out.println("QQ消息(" + nickName + "[" + qqNumber + "]): " + content);
-                if (Arrays.asList(LISTEN_QQ_NUMBERS).contains(qqNumber)) {
+                if (LISTEN_QQ_NUMBERS.length == 0 || Arrays.asList(LISTEN_QQ_NUMBERS).contains(qqNumber)) {
                     String reply = tulingMsg(content);
                     System.out.println("回复QQ消息(" + nickName + "[" + qqNumber + "]): " + reply);
                     client.sendMessageToFriend(userId, reply);
