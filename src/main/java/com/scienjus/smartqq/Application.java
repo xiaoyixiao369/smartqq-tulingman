@@ -26,7 +26,7 @@ public class Application {
     public static final String TU_LING_API_KEY = "";
 
     /**
-     * 监听收到好友的QQ消息的QQ号
+     * 监听收到好友的QQ消息的QQ号，如果该列表为空，将自动回复所有QQ好友消息
      */
     public static final Long[] LISTEN_QQ_NUMBERS = new Long[]{};
 
