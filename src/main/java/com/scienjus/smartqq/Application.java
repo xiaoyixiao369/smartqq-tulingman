@@ -14,6 +14,7 @@ import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -63,7 +64,7 @@ public class Application {
                     }
                 }
                 String content = message.getContent();
-                System.out.println("[" + DATE_FORMAT.format(message.getTime()) + "]QQ消息(" + nickName + "[" + qqNumber + "]): " + content);
+                System.out.println("[" + DATE_FORMAT.format(new Date()) + "]QQ消息(" + nickName + "[" + qqNumber + "]): " + content);
                 if (LISTEN_QQ_NUMBERS.length == 0 || Arrays.asList(LISTEN_QQ_NUMBERS).contains(qqNumber)) {
                     String reply = tulingMsg(content);
                     System.out.println("回复QQ消息(" + nickName + "[" + qqNumber + "]): " + reply);
@@ -76,7 +77,7 @@ public class Application {
                 String content = message.getContent();
                 GroupInfo groupInfo = client.getGroupInfo(message.getGroupId());
                 String groupName = groupInfo.getName();
-                System.out.println("[" + DATE_FORMAT.format(message.getTime()) + "]群消息(" + groupName + "): " + content);
+                System.out.println("[" + DATE_FORMAT.format(new Date()) + "]群消息(" + groupName + "): " + content);
                 if (Arrays.asList(LISTEN_QQ_GROUPS).contains(groupName)) {
                     String reply = tulingMsg(content);
                     System.out.println("回复群消息(" + groupName + "): " + reply);
@@ -86,7 +87,7 @@ public class Application {
 
             @Override
             public void onDiscussMessage(SmartQQClient client, DiscussMessage message) {
-                System.out.println("[" + DATE_FORMAT.format(message.getTime()) + "]讨论组消息: " + message.getContent());
+                System.out.println("[" + DATE_FORMAT.format(new Date()) + "]讨论组消息: " + message.getContent());
             }
         });
 
